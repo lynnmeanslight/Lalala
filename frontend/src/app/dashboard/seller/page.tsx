@@ -6,6 +6,7 @@ import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { getOrders, updateOrder } from '@/lib/store';
 import { Order, OrderStatus } from '@/types';
 import { OrderStatusBadge } from '@/components/OrderStatusBadge';
+import { formatThb, usdtToThb } from '@/lib/currency';
 
 export default function SellerDashboardPage() {
   const { authenticated } = usePrivy();
@@ -62,8 +63,8 @@ export default function SellerDashboardPage() {
       {/* Summary cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
-          { label: 'Total Earned', value: `${totalEarned.toFixed(2)} USDT`, sub: 'after 1.5% fee' },
-          { label: 'In Escrow', value: `${inEscrow.toFixed(2)} USDT`, sub: 'pending delivery' },
+          { label: 'Total Earned', value: formatThb(usdtToThb(totalEarned)), sub: 'after 1.5% fee' },
+          { label: 'In Escrow', value: formatThb(usdtToThb(inEscrow)), sub: 'pending delivery' },
           {
             label: 'Active Orders',
             value: String(orders.filter((o) => o.status !== 'delivered').length),
@@ -93,7 +94,7 @@ export default function SellerDashboardPage() {
                     <p className="text-xs text-gray-400 mt-0.5 font-mono">{order.id}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="font-bold text-sm">{order.priceUsdt.toFixed(2)} USDT</span>
+                    <span className="font-bold text-sm">{formatThb(usdtToThb(order.priceUsdt))}</span>
                     <OrderStatusBadge status={order.status} />
                   </div>
                 </div>

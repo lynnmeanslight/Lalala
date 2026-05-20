@@ -69,7 +69,7 @@ export function ConfirmDeliveryButton({
       </button>
       {error && <p className="text-xs text-red-500">{error}</p>}
       <p className="text-xs text-gray-400 text-center">
-        Confirming releases USDT to the seller instantly.
+        Confirming releases payment to the seller instantly.
       </p>
     </div>
   );

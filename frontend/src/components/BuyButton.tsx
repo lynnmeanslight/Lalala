@@ -21,6 +21,7 @@ import {
   USDT_DECIMALS,
 } from '@/lib/contracts';
 import { saveOrder } from '@/lib/store';
+import { formatThb, usdtToThb } from '@/lib/currency';
 
 export function BuyButton({
   listingId,
@@ -80,7 +81,7 @@ export function BuyButton({
       const gasPrice = await publicClient.getGasPrice();
 
       // 1. Approve USDT
-      setStep('Approving USDT...');
+      setStep('Approving payment...');
       const approveTx = await walletClient.writeContract({
         address: USDT_CONTRACT_ADDRESS,
         abi: ERC20_ABI,
@@ -137,12 +138,12 @@ export function BuyButton({
         {loading
           ? (step || 'Processing...')
           : authenticated
-          ? `Buy · ${priceUsdt.toFixed(2)} USDT`
+          ? `Buy · ${formatThb(usdtToThb(priceUsdt))}`
           : 'Sign in to Buy'}
       </button>
       {error && <p className="text-xs text-red-500">{error}</p>}
       <p className="text-xs text-gray-400 text-center">
-        🔒 USDT locked in KUB Chain escrow until delivery confirmed
+        🔒 Payment locked in KUB Chain escrow until delivery confirmed
       </p>
     </div>
   );

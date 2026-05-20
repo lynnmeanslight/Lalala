@@ -10,6 +10,7 @@ import { activeChain } from '@/lib/chain';
 import { USDT_CONTRACT_ADDRESS, ERC20_ABI, USDT_DECIMALS } from '@/lib/contracts';
 import { Order } from '@/types';
 import { OrderStatusBadge } from '@/components/OrderStatusBadge';
+import { formatThb, usdtToThb } from '@/lib/currency';
 
 export default function BuyerDashboardPage() {
   const { authenticated } = usePrivy();
@@ -52,7 +53,7 @@ export default function BuyerDashboardPage() {
         gasPrice,
       });
       await publicClient.waitForTransactionReceipt({ hash: tx });
-      setMintMsg('✅ Minted 1,000 test USDT to your wallet!');
+      setMintMsg('✅ Test funds added to your wallet!');
     } catch (err: unknown) {
       setMintMsg(err instanceof Error ? err.message : 'Mint failed.');
     } finally {
@@ -77,7 +78,7 @@ export default function BuyerDashboardPage() {
           disabled={minting}
           className="rounded-xl border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-medium text-orange-700 hover:bg-orange-100 disabled:opacity-60 transition-colors"
         >
-          {minting ? 'Minting...' : 'Get 1,000 Test USDT'}
+          {minting ? 'Adding funds...' : 'Get Test Funds'}
         </button>
       </div>
       {mintMsg && <p className="text-sm text-green-600">{mintMsg}</p>}
@@ -114,7 +115,7 @@ export default function BuyerDashboardPage() {
                     <OrderStatusBadge status={order.status} />
                   </div>
                   <p className="text-lg font-bold text-gray-900 mt-1">
-                    {order.priceUsdt.toFixed(2)} USDT
+                    {formatThb(usdtToThb(order.priceUsdt))}
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5">
                     {new Date(order.createdAt).toLocaleDateString('en-GB')}

@@ -8,6 +8,7 @@ import { getListing, getReviews } from '@/lib/store';
 import { Listing, Review } from '@/types';
 import { StarRating } from '@/components/StarRating';
 import { BuyButton } from '@/components/BuyButton';
+import { formatThb, usdtToThb } from '@/lib/currency';
 
 export default function ListingDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -63,8 +64,7 @@ export default function ListingDetailPage() {
           <StarRating rating={listing.avgRating} count={listing.reviewCount} size="md" />
 
           <p className="text-3xl font-bold text-gray-900">
-            {listing.priceUsdt.toFixed(2)}{' '}
-            <span className="text-base font-medium text-gray-500">USDT</span>
+            {formatThb(usdtToThb(listing.priceUsdt))}
           </p>
 
           <p className="text-sm text-gray-600 leading-relaxed">{listing.description}</p>

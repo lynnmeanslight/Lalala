@@ -8,6 +8,7 @@ import { ConfirmDeliveryButton } from '@/components/ConfirmDeliveryButton';
 import { DisputeButton } from '@/components/DisputeButton';
 import { ReviewForm } from '@/components/ReviewForm';
 import { getOrder } from '@/lib/store';
+import { formatThb, usdtToThb } from '@/lib/currency';
 
 function OrderPageContent() {
   const { id } = useParams<{ id: string }>();
@@ -60,7 +61,7 @@ function OrderPageContent() {
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Amount</span>
-            <span className="font-bold">{meta.priceUsdt.toFixed(2)} USDT</span>
+            <span className="font-bold">{formatThb(usdtToThb(meta.priceUsdt))}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Date</span>
@@ -104,7 +105,7 @@ function OrderPageContent() {
 
       {status === 'paid' && (
         <div className="bg-blue-50 rounded-xl border border-blue-200 p-4 text-sm text-blue-800">
-          🔒 Your USDT is locked in escrow. Waiting for the seller to ship.
+          🔒 Your payment is locked in escrow. Waiting for the seller to ship.
         </div>
       )}
 

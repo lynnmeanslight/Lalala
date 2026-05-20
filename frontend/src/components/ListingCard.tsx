@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Listing } from '@/types';
 import { StarRating } from './StarRating';
+import { formatThb, usdtToThb } from '@/lib/currency';
 
 export function ListingCard({ listing }: { listing: Listing }) {
   return (
@@ -23,8 +24,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
         <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 mb-2">{listing.title}</h3>
         <div className="flex items-center justify-between">
           <span className="text-lg font-bold text-gray-900">
-            {listing.priceUsdt.toFixed(2)}{' '}
-            <span className="text-sm font-medium text-gray-500">USDT</span>
+            {formatThb(usdtToThb(listing.priceUsdt))}
           </span>
           <StarRating rating={listing.avgRating} count={listing.reviewCount} size="sm" />
         </div>

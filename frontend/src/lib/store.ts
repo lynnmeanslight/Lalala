@@ -1,9 +1,8 @@
 /**
  * Client-side localStorage store for listings, orders, and reviews.
- * Listings are seeded once from MOCK_LISTINGS on first load.
+ * Starts empty — all data is created by real users.
  */
 import { Listing, Order, Review } from '@/types';
-import { MOCK_LISTINGS } from './mock-data';
 
 const LISTINGS_KEY = 'lalala_listings';
 const ORDERS_KEY   = 'lalala_orders';
@@ -12,13 +11,9 @@ const REVIEWS_KEY  = 'lalala_reviews';
 // ── Listings ────────────────────────────────────────────────────────────────
 
 export function getListings(): Listing[] {
-  if (typeof window === 'undefined') return MOCK_LISTINGS;
+  if (typeof window === 'undefined') return [];
   const raw = localStorage.getItem(LISTINGS_KEY);
-  if (!raw) {
-    localStorage.setItem(LISTINGS_KEY, JSON.stringify(MOCK_LISTINGS));
-    return MOCK_LISTINGS;
-  }
-  return JSON.parse(raw) as Listing[];
+  return raw ? (JSON.parse(raw) as Listing[]) : [];
 }
 
 export function getListing(id: string): Listing | undefined {

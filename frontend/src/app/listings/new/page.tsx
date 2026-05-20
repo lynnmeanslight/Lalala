@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { useRouter } from 'next/navigation';
 import { saveListing } from '@/lib/store';
+import { thbToUsdt } from '@/lib/currency';
 
 const CATEGORIES = ['Home & Kitchen', 'Fashion', 'Food & Drink', 'Electronics', 'Collectibles', 'Other'];
 
@@ -11,7 +12,7 @@ export default function NewListingPage() {
   const { authenticated } = usePrivy();
   const { wallets } = useWallets();
   const router = useRouter();
-  const [form, setForm] = useState({ title: '', description: '', category: '', priceUsdt: '', stock: '' });
+  const [form, setForm] = useState({ title: '', description: '', category: '', priceThb: '', stock: '' });
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -24,7 +25,7 @@ export default function NewListingPage() {
       description: form.description,
       category: form.category,
       images: ['https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80'],
-      priceUsdt: parseFloat(form.priceUsdt),
+      priceUsdt: thbToUsdt(parseFloat(form.priceThb)),
       stock: parseInt(form.stock, 10),
       sellerId: sellerWallet,
       sellerName: `${sellerWallet.slice(0, 6)}...${sellerWallet.slice(-4)}`,
@@ -104,15 +105,15 @@ export default function NewListingPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Price (USDT)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Price (฿ Baht)</label>
             <input
               required
               type="number"
-              min="0.01"
-              step="0.01"
-              value={form.priceUsdt}
-              onChange={(e) => setForm({ ...form, priceUsdt: e.target.value })}
-              placeholder="0.00"
+              min="1"
+              step="1"
+              value={form.priceThb}
+              onChange={(e) => setForm({ ...form, priceThb: e.target.value })}
+              placeholder="e.g. 500"
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
             />
           </div>

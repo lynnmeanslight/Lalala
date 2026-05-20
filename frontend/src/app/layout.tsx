@@ -9,7 +9,7 @@ const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans' });
 export const metadata: Metadata = {
   title: 'Lalala — Shop safely on KUB Chain',
   description:
-    'Thai marketplace with USDT escrow on KUB Chain. Real reviews, 1.5 0.000000ee, instant settlement.',
+    'Thai marketplace with secure escrow on KUB Chain. Real reviews, 1.5% fee, instant settlement.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Navbar />
           <main className="flex-1">{children}</main>
           <footer className="border-t bg-white py-6 text-center text-sm text-gray-400">
-            © 2026 Lalala · Built on KUB Chain · Powered by USDT escrow
+            © 2026 Lalala · Built on KUB Chain
           </footer>
         </PrivyProviders>
       </body>

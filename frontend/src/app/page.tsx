@@ -21,13 +21,13 @@ export default function HomePage() {
             Shop Thai. Pay safe.
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
-            Every purchase is protected by USDT escrow on KUB Chain. Verified reviews only.
+            Every purchase is protected by escrow on KUB Chain. Verified reviews only.
             Fixed 1.5% fee. No surprises.
           </p>
           <div className="flex flex-wrap justify-center gap-3 text-sm">
             <div className="flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-sm border">
               <span>🔒</span>
-              <span className="font-medium">USDT Escrow on KUB Chain</span>
+              <span className="font-medium">Secure Escrow on KUB Chain</span>
             </div>
             <div className="flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-sm border">
               <span>✅</span>

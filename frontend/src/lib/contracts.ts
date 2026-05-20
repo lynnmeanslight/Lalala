@@ -10,8 +10,18 @@ export const USDT_CONTRACT_ADDRESS =
 // USDT uses 6 decimals on KUB Chain
 export const USDT_DECIMALS = 6;
 
-// Minimal ERC-20 ABI (approve + balanceOf)
+// Minimal ERC-20 ABI (approve + balanceOf + allowance + mint for MockUSDT)
 export const ERC20_ABI = [
+  {
+    name: 'mint',
+    type: 'function',
+    stateMutability: 'nonpayable',
+    inputs: [
+      { name: 'to',     type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
+    outputs: [],
+  },
   {
     name: 'approve',
     type: 'function',

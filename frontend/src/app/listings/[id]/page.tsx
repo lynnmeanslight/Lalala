@@ -1,19 +1,30 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { MOCK_LISTINGS, MOCK_REVIEWS } from '@/lib/mock-data';
+import { getListing, getReviews } from '@/lib/store';
+import { Listing, Review } from '@/types';
 import { StarRating } from '@/components/StarRating';
 import { BuyButton } from '@/components/BuyButton';
 
-interface Props {
-  params: Promise<{ id: string }>;
-}
+export default function ListingDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const [listing, setListing] = useState<Listing | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [ready, setReady] = useState(false);
 
-export default async function ListingDetailPage({ params }: Props) {
-  const { id } = await params;
-  const listing = MOCK_LISTINGS.find((l) => l.id === id);
-  if (!listing) notFound();
+  useEffect(() => {
+    const l = getListing(id);
+    if (!l) { setReady(true); return; }
+    setListing(l);
+    setReviews(getReviews(id));
+    setReady(true);
+  }, [id]);
 
-  const reviews = MOCK_REVIEWS.filter((r) => r.listingId === id);
+  if (!ready) return null;
+  if (!listing) return notFound();
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
@@ -76,6 +87,8 @@ export default async function ListingDetailPage({ params }: Props) {
           <div className="pt-2">
             <BuyButton
               listingId={listing.id}
+              listingTitle={listing.title}
+              listingImage={listing.images[0]}
               priceUsdt={listing.priceUsdt}
               sellerWallet={listing.sellerWallet}
             />

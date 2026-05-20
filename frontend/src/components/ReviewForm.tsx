@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useWallets } from '@privy-io/react-auth';
+import { saveReview } from '@/lib/store';
 
 export function ReviewForm({
   orderId,
@@ -11,6 +13,7 @@ export function ReviewForm({
   listingId: string;
   onSubmitted: () => void;
 }) {
+  const { wallets } = useWallets();
   const [rating, setRating] = useState(0);
   const [hovered, setHovered] = useState(0);
   const [comment, setComment] = useState('');
@@ -20,8 +23,17 @@ export function ReviewForm({
     e.preventDefault();
     if (rating === 0) return;
     setLoading(true);
-    // TODO: POST review to backend API
-    await new Promise((r) => setTimeout(r, 800));
+    const address = wallets[0]?.address ?? 'anonymous';
+    saveReview({
+      id: `review-${Date.now()}`,
+      orderId,
+      listingId,
+      reviewerId: address,
+      reviewerName: `${address.slice(0, 6)}...${address.slice(-4)}`,
+      rating,
+      comment,
+      createdAt: new Date().toISOString(),
+    });
     setLoading(false);
     onSubmitted();
   };

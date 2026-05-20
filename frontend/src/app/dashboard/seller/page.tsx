@@ -1,20 +1,29 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { usePrivy } from '@privy-io/react-auth';
-import { MOCK_SELLER_ORDERS } from '@/lib/mock-data';
+import { useState, useEffect } from 'react';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
+import { getOrders, updateOrder } from '@/lib/store';
 import { Order, OrderStatus } from '@/types';
 import { OrderStatusBadge } from '@/components/OrderStatusBadge';
 
 export default function SellerDashboardPage() {
   const { authenticated } = usePrivy();
-  const [orders, setOrders] = useState<Order[]>(MOCK_SELLER_ORDERS);
+  const { wallets } = useWallets();
+  const [orders, setOrders] = useState<Order[]>([]);
   const [trackingInputs, setTrackingInputs] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const wallet = wallets[0];
+    if (!wallet) return;
+    const all = getOrders();
+    setOrders(all.filter((o) => o.sellerWallet.toLowerCase() === wallet.address.toLowerCase()));
+  }, [wallets]);
 
   const handleMarkShipped = (orderId: string) => {
     const tracking = trackingInputs[orderId]?.trim();
     if (!tracking) return;
+    updateOrder(orderId, { status: 'shipped', trackingNumber: tracking });
     setOrders((prev) =>
       prev.map((o) =>
         o.id === orderId ? { ...o, status: 'shipped' as OrderStatus, trackingNumber: tracking } : o

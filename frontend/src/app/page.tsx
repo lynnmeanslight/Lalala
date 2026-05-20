@@ -1,7 +1,17 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import { ListingGrid } from '@/components/ListingGrid';
-import { MOCK_LISTINGS } from '@/lib/mock-data';
+import { getListings } from '@/lib/store';
+import { Listing } from '@/types';
 
 export default function HomePage() {
+  const [listings, setListings] = useState<Listing[]>([]);
+
+  useEffect(() => {
+    setListings(getListings());
+  }, []);
+
   return (
     <div>
       {/* Hero */}
@@ -34,7 +44,7 @@ export default function HomePage() {
       {/* Listings */}
       <section className="mx-auto max-w-7xl px-4 py-10">
         <h2 className="text-xl font-semibold text-gray-800 mb-6">Featured Listings</h2>
-        <ListingGrid listings={MOCK_LISTINGS} />
+        <ListingGrid listings={listings} />
       </section>
     </div>
   );

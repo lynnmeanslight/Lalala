@@ -1,14 +1,61 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePrivy } from '@privy-io/react-auth';
-import { MOCK_ORDERS } from '@/lib/mock-data';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
+import { createWalletClient, createPublicClient, custom, http, parseUnits } from 'viem';
+import { getOrders, updateOrder } from '@/lib/store';
+import { activeChain } from '@/lib/chain';
+import { USDT_CONTRACT_ADDRESS, ERC20_ABI, USDT_DECIMALS } from '@/lib/contracts';
+import { Order } from '@/types';
 import { OrderStatusBadge } from '@/components/OrderStatusBadge';
 
 export default function BuyerDashboardPage() {
   const { authenticated } = usePrivy();
-  const orders = MOCK_ORDERS;
+  const { wallets } = useWallets();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [minting, setMinting] = useState(false);
+  const [mintMsg, setMintMsg] = useState('');
+
+  useEffect(() => {
+    const wallet = wallets[0];
+    if (!wallet) return;
+    const all = getOrders();
+    setOrders(all.filter((o) => o.buyerWallet.toLowerCase() === wallet.address.toLowerCase()));
+  }, [wallets]);
+
+  const handleMint = async () => {
+    const wallet = wallets[0];
+    if (!wallet) return;
+    setMinting(true);
+    setMintMsg('');
+    try {
+      await wallet.switchChain(activeChain.id);
+      const provider = await wallet.getEthereumProvider();
+      const walletClient = createWalletClient({
+        chain: activeChain,
+        transport: custom(provider),
+        account: wallet.address as `0x${string}`,
+      });
+      const publicClient = createPublicClient({
+        chain: activeChain,
+        transport: http(activeChain.rpcUrls.default.http[0]),
+      });
+      const tx = await walletClient.writeContract({
+        address: USDT_CONTRACT_ADDRESS,
+        abi: ERC20_ABI,
+        functionName: 'mint',
+        args: [wallet.address as `0x${string}`, parseUnits('1000', USDT_DECIMALS)],
+      });
+      await publicClient.waitForTransactionReceipt({ hash: tx });
+      setMintMsg('✅ Minted 1,000 test USDT to your wallet!');
+    } catch (err: unknown) {
+      setMintMsg(err instanceof Error ? err.message : 'Mint failed.');
+    } finally {
+      setMinting(false);
+    }
+  };
 
   if (!authenticated) {
     return (
@@ -20,7 +67,17 @@ export default function BuyerDashboardPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">My Orders</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-900">My Orders</h1>
+        <button
+          onClick={handleMint}
+          disabled={minting}
+          className="rounded-xl border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-medium text-orange-700 hover:bg-orange-100 disabled:opacity-60 transition-colors"
+        >
+          {minting ? 'Minting...' : 'Get 1,000 Test USDT'}
+        </button>
+      </div>
+      {mintMsg && <p className="text-sm text-green-600">{mintMsg}</p>}
 
       {orders.length === 0 ? (
         <div className="text-center py-16 text-gray-400">

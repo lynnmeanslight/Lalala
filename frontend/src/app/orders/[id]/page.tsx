@@ -1,31 +1,45 @@
 'use client';
 
-import { useSearchParams, useParams } from 'next/navigation';
-import { useState, Suspense } from 'react';
+import { useParams } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
 import { OrderStatus } from '@/types';
 import { OrderStatusBadge } from '@/components/OrderStatusBadge';
 import { ConfirmDeliveryButton } from '@/components/ConfirmDeliveryButton';
 import { DisputeButton } from '@/components/DisputeButton';
 import { ReviewForm } from '@/components/ReviewForm';
-import { MOCK_ORDERS } from '@/lib/mock-data';
+import { getOrder } from '@/lib/store';
 
 function OrderPageContent() {
   const { id } = useParams<{ id: string }>();
-  const searchParams = useSearchParams();
-
-  const mockOrder = MOCK_ORDERS.find((o) => o.id === id);
-  const [status, setStatus] = useState<OrderStatus>(mockOrder?.status ?? 'paid');
+  const [status, setStatus] = useState<OrderStatus>('paid');
   const [reviewDone, setReviewDone] = useState(false);
+  const [meta, setMeta] = useState({
+    priceUsdt: 0,
+    listingId: '',
+    listingTitle: 'Your Order',
+    txHash: '',
+    trackingNumber: undefined as string | undefined,
+    createdAt: new Date().toISOString(),
+    autoReleaseAt: new Date(Date.now() + 7 * 86_400_000).toISOString(),
+  });
 
-  const priceUsdt = mockOrder?.priceUsdt ?? parseFloat(searchParams.get('price') ?? '0');
-  const listingId = mockOrder?.listingId ?? searchParams.get('listing') ?? '';
-  const listingTitle = mockOrder?.listingTitle ?? 'Your Order';
-  const txHash = mockOrder?.txHash ?? '0xmocktxhash_new';
-  const trackingNumber = mockOrder?.trackingNumber;
-  const createdAt = mockOrder?.createdAt ?? new Date().toISOString();
-  const autoReleaseAt = mockOrder?.autoReleaseAt ?? new Date(Date.now() + 7 * 86400000).toISOString();
+  useEffect(() => {
+    const order = getOrder(id);
+    if (order) {
+      setStatus(order.status);
+      setMeta({
+        priceUsdt: order.priceUsdt,
+        listingId: order.listingId,
+        listingTitle: order.listingTitle,
+        txHash: order.txHash ?? '',
+        trackingNumber: order.trackingNumber,
+        createdAt: order.createdAt,
+        autoReleaseAt: order.autoReleaseAt,
+      });
+    }
+  }, [id]);
 
-  const daysLeft = Math.ceil((new Date(autoReleaseAt).getTime() - Date.now()) / 86400000);
+  const daysLeft = Math.ceil((new Date(meta.autoReleaseAt).getTime() - Date.now()) / 86_400_000);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 space-y-6">
@@ -42,24 +56,33 @@ function OrderPageContent() {
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-500">Product</span>
-            <span className="font-medium text-right max-w-[60%]">{listingTitle}</span>
+            <span className="font-medium text-right max-w-[60%]">{meta.listingTitle}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Amount</span>
-            <span className="font-bold">{priceUsdt.toFixed(2)} USDT</span>
+            <span className="font-bold">{meta.priceUsdt.toFixed(2)} USDT</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Date</span>
-            <span>{new Date(createdAt).toLocaleDateString('en-GB')}</span>
+            <span>{new Date(meta.createdAt).toLocaleDateString('en-GB')}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500">Tx Hash</span>
-            <span className="font-mono text-xs text-orange-500 truncate max-w-[55%]">{txHash}</span>
-          </div>
-          {trackingNumber && (
+          {meta.txHash && (
+            <div className="flex justify-between">
+              <span className="text-gray-500">Tx Hash</span>
+              <a
+                href={`${process.env.NEXT_PUBLIC_CHAIN === 'mainnet' ? 'https://www.bkcscan.com' : 'https://testnet.bkcscan.com'}/tx/${meta.txHash}`}
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono text-xs text-orange-500 truncate max-w-[55%] hover:underline"
+              >
+                {meta.txHash.slice(0, 20)}...
+              </a>
+            </div>
+          )}
+          {meta.trackingNumber && (
             <div className="flex justify-between">
               <span className="text-gray-500">Tracking</span>
-              <span className="font-mono">{trackingNumber}</span>
+              <span className="font-mono">{meta.trackingNumber}</span>
             </div>
           )}
         </div>
@@ -95,7 +118,7 @@ function OrderPageContent() {
       {status === 'delivered' && !reviewDone && (
         <ReviewForm
           orderId={id}
-          listingId={listingId}
+          listingId={meta.listingId}
           onSubmitted={() => setReviewDone(true)}
         />
       )}

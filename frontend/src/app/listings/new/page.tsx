@@ -1,20 +1,38 @@
 'use client';
 
 import { useState } from 'react';
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { useRouter } from 'next/navigation';
+import { saveListing } from '@/lib/store';
 
 const CATEGORIES = ['Home & Kitchen', 'Fashion', 'Food & Drink', 'Electronics', 'Collectibles', 'Other'];
 
 export default function NewListingPage() {
   const { authenticated } = usePrivy();
+  const { wallets } = useWallets();
   const router = useRouter();
   const [form, setForm] = useState({ title: '', description: '', category: '', priceUsdt: '', stock: '' });
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: POST to backend API
+    const wallet = wallets[0];
+    const sellerWallet = wallet?.address ?? '0x0000000000000000000000000000000000000000';
+    saveListing({
+      id: `listing-${Date.now()}`,
+      title: form.title,
+      description: form.description,
+      category: form.category,
+      images: ['https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80'],
+      priceUsdt: parseFloat(form.priceUsdt),
+      stock: parseInt(form.stock, 10),
+      sellerId: sellerWallet,
+      sellerName: `${sellerWallet.slice(0, 6)}...${sellerWallet.slice(-4)}`,
+      sellerWallet,
+      createdAt: new Date().toISOString(),
+      avgRating: 0,
+      reviewCount: 0,
+    });
     setSubmitted(true);
     setTimeout(() => router.push('/dashboard/seller'), 1500);
   };

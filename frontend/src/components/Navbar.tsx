@@ -1,11 +1,47 @@
 'use client';
 
 import Link from 'next/link';
-import { usePrivy } from '@privy-io/react-auth';
+import { useEffect, useState } from 'react';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
+import { createPublicClient, http, formatEther } from 'viem';
+import { activeChain } from '@/lib/chain';
 
 export function Navbar() {
   const { ready, authenticated, user, login, logout } = usePrivy();
+  const { wallets } = useWallets();
   const role = typeof window !== 'undefined' ? localStorage.getItem('lalala_role') : null;
+
+  const [thbBalance, setThbBalance] = useState<number | null>(null);
+
+  useEffect(() => {
+    const wallet = wallets[0];
+    if (!wallet || !authenticated) { setThbBalance(null); return; }
+
+    let cancelled = false;
+    const publicClient = createPublicClient({
+      chain: activeChain,
+      transport: http(activeChain.rpcUrls.default.http[0]),
+    });
+
+    async function fetchBalance() {
+      try {
+        const [rawBalance, priceRes] = await Promise.all([
+          publicClient.getBalance({ address: wallet.address as `0x${string}` }),
+          fetch('/api/kub-price'),
+        ]);
+        if (cancelled) return;
+        const { thb } = await priceRes.json();
+        const kub = parseFloat(formatEther(rawBalance));
+        setThbBalance(kub * thb);
+      } catch {
+        // silently ignore — balance stays null
+      }
+    }
+
+    fetchBalance();
+    const interval = setInterval(fetchBalance, 30_000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [wallets, authenticated]);
 
   return (
     <header className="sticky top-0 z-50 border-b bg-white shadow-sm">
@@ -43,6 +79,11 @@ export function Navbar() {
               <span className="hidden md:block text-sm text-gray-500 truncate max-w-35">
                 {user?.email?.address ?? 'Connected'}
               </span>
+              {thbBalance !== null && (
+                <span className="hidden md:flex items-center gap-1 rounded-lg bg-orange-50 border border-orange-200 px-2.5 py-1 text-sm font-semibold text-orange-700">
+                  ฿{thbBalance.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              )}
               <button
                 onClick={() => logout()}
                 className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50 transition-colors"

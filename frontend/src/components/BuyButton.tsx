@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { useRouter } from 'next/navigation';
 import {
@@ -9,6 +9,7 @@ import {
   custom,
   http,
   parseUnits,
+  formatUnits,
   keccak256,
   encodePacked,
 } from 'viem';
@@ -42,10 +43,65 @@ export function BuyButton({
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState('');
   const [error, setError] = useState('');
+  const [usdtBalance, setUsdtBalance] = useState<number | null>(null);
+  const [minting, setMinting] = useState(false);
+
+  // Check USDT balance whenever wallet connects
+  useEffect(() => {
+    const wallet = wallets[0];
+    if (!wallet || !authenticated) { setUsdtBalance(null); return; }
+    const publicClient = createPublicClient({
+      chain: activeChain,
+      transport: http(activeChain.rpcUrls.default.http[0]),
+    });
+    publicClient.readContract({
+      address: USDT_CONTRACT_ADDRESS,
+      abi: ERC20_ABI,
+      functionName: 'balanceOf',
+      args: [wallet.address as `0x${string}`],
+    }).then((bal) => {
+      setUsdtBalance(parseFloat(formatUnits(bal as bigint, USDT_DECIMALS)));
+    }).catch(() => {});
+  }, [wallets, authenticated]);
+
+  const handleMint = async () => {
+    const wallet = wallets[0];
+    if (!wallet) return;
+    setMinting(true);
+    setError('');
+    try {
+      await wallet.switchChain(activeChain.id);
+      const provider = await wallet.getEthereumProvider();
+      const walletClient = createWalletClient({
+        chain: activeChain,
+        transport: custom(provider),
+        account: wallet.address as `0x${string}`,
+      });
+      const publicClient = createPublicClient({
+        chain: activeChain,
+        transport: http(activeChain.rpcUrls.default.http[0]),
+      });
+      const gasPrice = await publicClient.getGasPrice();
+      const tx = await walletClient.writeContract({
+        address: USDT_CONTRACT_ADDRESS,
+        abi: ERC20_ABI,
+        functionName: 'mint',
+        args: [wallet.address as `0x${string}`, parseUnits('1000', USDT_DECIMALS)],
+        gasPrice,
+        gas: 100_000n,
+      });
+      await publicClient.waitForTransactionReceipt({ hash: tx });
+      setUsdtBalance((prev) => (prev ?? 0) + 1000);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Mint failed.');
+    } finally {
+      setMinting(false);
+    }
+  };
 
   const handleBuy = async () => {
     if (!authenticated) {
-      login();
+      router.push('/auth');
       return;
     }
     const wallet = wallets[0];
@@ -69,7 +125,6 @@ export function BuyButton({
 
       const amount = parseUnits(priceUsdt.toFixed(6), USDT_DECIMALS);
 
-      // Deterministic bytes32 order ID
       const orderId = keccak256(
         encodePacked(
           ['address', 'string', 'uint256'],
@@ -77,7 +132,6 @@ export function BuyButton({
         )
       );
 
-      // Fetch gas price via HTTP public client (not Privy provider) for reliable legacy tx
       const gasPrice = await publicClient.getGasPrice();
 
       // 1. Approve USDT
@@ -88,6 +142,7 @@ export function BuyButton({
         functionName: 'approve',
         args: [ESCROW_CONTRACT_ADDRESS, amount],
         gasPrice,
+        gas: 80_000n,
       });
       await publicClient.waitForTransactionReceipt({ hash: approveTx });
 
@@ -99,10 +154,10 @@ export function BuyButton({
         functionName: 'createOrder',
         args: [orderId as `0x${string}`, sellerWallet as `0x${string}`, amount],
         gasPrice,
+        gas: 200_000n,
       });
       await publicClient.waitForTransactionReceipt({ hash: orderTx });
 
-      // 3. Persist order metadata locally
       saveOrder({
         id: orderId,
         listingId,
@@ -116,7 +171,7 @@ export function BuyButton({
         status: 'paid',
         txHash: orderTx,
         createdAt: new Date().toISOString(),
-        autoReleaseAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // 5 min demo
+        autoReleaseAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
       });
 
       router.push(`/orders/${orderId}`);
@@ -128,11 +183,31 @@ export function BuyButton({
     }
   };
 
+  const needsFunds = authenticated && usdtBalance !== null && usdtBalance < priceUsdt;
+
   return (
     <div className="space-y-2">
+      {/* Faucet banner — shown when wallet has insufficient test USDT */}
+      {needsFunds && (
+        <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-amber-800">Not enough test USDT</p>
+            <p className="text-xs text-amber-600 mt-0.5">
+              You have {usdtBalance!.toFixed(2)} USDT · need {priceUsdt.toFixed(2)}
+            </p>
+          </div>
+          <button
+            onClick={handleMint}
+            disabled={minting}
+            className="shrink-0 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600 disabled:opacity-60 transition-colors"
+          >
+            {minting ? 'Minting…' : 'Get 1000 USDT'}
+          </button>
+        </div>
+      )}
       <button
         onClick={handleBuy}
-        disabled={loading}
+        disabled={loading || needsFunds}
         className="w-full rounded-xl bg-orange-500 py-3 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
       >
         {loading

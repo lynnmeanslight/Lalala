@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/lynn/Desktop/SEABW/Lalala/contracts/contracts/LalalaEscrow.sol": {
-      "lastModificationDate": 1779259471200,
-      "contentHash": "4a59afa20e76cb4ea1b6a94875ef638d",
+      "lastModificationDate": 1779269439910,
+      "contentHash": "41c7840eff2595456293388a6e811efc",
       "sourceName": "contracts/LalalaEscrow.sol",
       "solcConfig": {
         "version": "0.8.24",

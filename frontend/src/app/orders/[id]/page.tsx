@@ -9,6 +9,7 @@ import { DisputeButton } from '@/components/DisputeButton';
 import { ReviewForm } from '@/components/ReviewForm';
 import { getOrder } from '@/lib/store';
 import { formatThb, usdtToThb } from '@/lib/currency';
+import { AutoReleaseButton } from '@/components/AutoReleaseButton';
 
 function OrderPageContent() {
   const { id } = useParams<{ id: string }>();
@@ -21,7 +22,7 @@ function OrderPageContent() {
     txHash: '',
     trackingNumber: undefined as string | undefined,
     createdAt: new Date().toISOString(),
-    autoReleaseAt: new Date(Date.now() + 7 * 86_400_000).toISOString(),
+    autoReleaseAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
   });
 
   useEffect(() => {
@@ -40,7 +41,10 @@ function OrderPageContent() {
     }
   }, [id]);
 
-  const daysLeft = Math.ceil((new Date(meta.autoReleaseAt).getTime() - Date.now()) / 86_400_000);
+  const msLeft = new Date(meta.autoReleaseAt).getTime() - Date.now();
+  const daysLeft = Math.ceil(msLeft / 86_400_000);
+  const minutesLeft = Math.ceil(msLeft / 60_000);
+  const autoReleaseEligible = msLeft <= 0;
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 space-y-6">
@@ -88,17 +92,34 @@ function OrderPageContent() {
           )}
         </div>
 
-        {status === 'shipped' && (
+        {status === 'shipped' && !autoReleaseEligible && (
           <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
-            Auto-release in <strong>{daysLeft} day{daysLeft !== 1 ? 's' : ''}</strong> if not confirmed.
+            Auto-release in{' '}
+            <strong>
+              {minutesLeft > 0
+                ? `${minutesLeft} minute${minutesLeft !== 1 ? 's' : ''}`
+                : `${daysLeft} day${daysLeft !== 1 ? 's' : ''}`}
+            </strong>{' '}
+            if not confirmed.
+          </div>
+        )}
+        {status === 'shipped' && autoReleaseEligible && (
+          <div className="mt-4 rounded-xl bg-purple-50 border border-purple-200 p-3 text-sm text-purple-800">
+            ⏰ Auto-release period has elapsed. You can now claim the funds.
           </div>
         )}
       </div>
 
       {/* Actions */}
-      {status === 'shipped' && (
+      {status === 'shipped' && !autoReleaseEligible && (
         <div className="space-y-3">
           <ConfirmDeliveryButton orderId={id} onConfirmed={() => setStatus('delivered')} />
+          <DisputeButton orderId={id} onDisputed={() => setStatus('disputed')} />
+        </div>
+      )}
+      {status === 'shipped' && autoReleaseEligible && (
+        <div className="space-y-3">
+          <AutoReleaseButton orderId={id} onReleased={() => setStatus('delivered')} />
           <DisputeButton orderId={id} onDisputed={() => setStatus('disputed')} />
         </div>
       )}

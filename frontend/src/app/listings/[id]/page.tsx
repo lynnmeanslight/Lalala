@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getListing, getReviews } from '@/lib/store';
 import { Listing, Review } from '@/types';
@@ -72,7 +73,13 @@ export default function ListingDetailPage() {
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <span>🏪</span>
             <span>
-              Sold by <span className="font-medium text-gray-700">{listing.sellerName}</span>
+              Sold by{' '}
+              <Link
+                href={`/sellers/${listing.sellerWallet}`}
+                className="font-medium text-orange-500 hover:underline"
+              >
+                {listing.sellerName}
+              </Link>
             </span>
           </div>
 

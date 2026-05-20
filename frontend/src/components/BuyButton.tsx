@@ -116,7 +116,7 @@ export function BuyButton({
         status: 'paid',
         txHash: orderTx,
         createdAt: new Date().toISOString(),
-        autoReleaseAt: new Date(Date.now() + 7 * 86_400_000).toISOString(),
+        autoReleaseAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // 5 min demo
       });
 
       router.push(`/orders/${orderId}`);

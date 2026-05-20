@@ -25,7 +25,8 @@ contract LalalaEscrow is Ownable, ReentrancyGuard {
     uint256 public constant FEE_BPS = 150;
 
     /// @notice After this period any party can trigger auto-release
-    uint256 public constant AUTO_RELEASE_PERIOD = 7 days;
+    /// @dev Set to 5 minutes for demo; change to 7 days for production
+    uint256 public constant AUTO_RELEASE_PERIOD = 5 minutes;
 
     // -------------------------------------------------------------------------
     // State

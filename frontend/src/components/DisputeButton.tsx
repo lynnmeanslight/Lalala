@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { useWallets } from '@privy-io/react-auth';
-import { createWalletClient, createPublicClient, custom, http } from 'viem';
+import { createPublicClient, http } from 'viem';
 import { activeChain } from '@/lib/chain';
 import { ESCROW_CONTRACT_ADDRESS, ESCROW_ABI } from '@/lib/contracts';
+import { sendLegacyContractTx } from '@/lib/tx';
 import { updateOrder } from '@/lib/store';
 
 export function DisputeButton({
@@ -33,24 +34,19 @@ export function DisputeButton({
       await wallet.switchChain(activeChain.id);
 
       const provider = await wallet.getEthereumProvider();
-      const walletClient = createWalletClient({
-        chain: activeChain,
-        transport: custom(provider),
-        account: wallet.address as `0x${string}`,
-      });
       const publicClient = createPublicClient({
         chain: activeChain,
         transport: http(activeChain.rpcUrls.default.http[0]),
       });
 
-      const gasPrice = await publicClient.getGasPrice();
-
-      const tx = await walletClient.writeContract({
-        address: ESCROW_CONTRACT_ADDRESS,
+      const tx = await sendLegacyContractTx({
+        provider,
+        from: wallet.address,
+        to: ESCROW_CONTRACT_ADDRESS,
         abi: ESCROW_ABI,
         functionName: 'raiseDispute',
-        args: [orderId as `0x${string}`],
-        gasPrice,
+        args: [orderId],
+        gas: 100_000n,
       });
       await publicClient.waitForTransactionReceipt({ hash: tx });
 

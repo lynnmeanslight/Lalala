@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
-import { createWalletClient, createPublicClient, custom, http, parseUnits } from 'viem';
+import { createPublicClient, http, parseUnits } from 'viem';
 import { getOrders, updateOrder } from '@/lib/store';
 import { activeChain } from '@/lib/chain';
 import { USDT_CONTRACT_ADDRESS, ERC20_ABI, USDT_DECIMALS } from '@/lib/contracts';
+import { sendLegacyContractTx } from '@/lib/tx';
 import { Order } from '@/types';
 import { OrderStatusBadge } from '@/components/OrderStatusBadge';
 import { formatThb, usdtToThb } from '@/lib/currency';
@@ -34,23 +35,19 @@ export default function BuyerDashboardPage() {
     try {
       await wallet.switchChain(activeChain.id);
       const provider = await wallet.getEthereumProvider();
-      const walletClient = createWalletClient({
-        chain: activeChain,
-        transport: custom(provider),
-        account: wallet.address as `0x${string}`,
-      });
       const publicClient = createPublicClient({
         chain: activeChain,
         transport: http(activeChain.rpcUrls.default.http[0]),
       });
-      const gasPrice = await publicClient.getGasPrice();
 
-      const tx = await walletClient.writeContract({
-        address: USDT_CONTRACT_ADDRESS,
+      const tx = await sendLegacyContractTx({
+        provider,
+        from: wallet.address,
+        to: USDT_CONTRACT_ADDRESS,
         abi: ERC20_ABI,
         functionName: 'mint',
-        args: [wallet.address as `0x${string}`, parseUnits('1000', USDT_DECIMALS)],
-        gasPrice,
+        args: [wallet.address, parseUnits('1000', USDT_DECIMALS)],
+        gas: 100_000n,
       });
       await publicClient.waitForTransactionReceipt({ hash: tx });
       setMintMsg('✅ Test funds added to your wallet!');
@@ -97,7 +94,7 @@ export default function BuyerDashboardPage() {
             <div key={order.id} className="bg-white rounded-2xl border shadow-sm p-5">
               <div className="flex gap-4">
                 {order.listingImage && (
-                  <div className="relative h-20 w-20 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+                  <div className="relative h-20 w-20 rounded-xl overflow-hidden bg-gray-100 shrink-0">
                     <Image
                       src={order.listingImage}
                       alt={order.listingTitle}

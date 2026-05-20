@@ -40,7 +40,7 @@ export function Navbar() {
             <div className="h-9 w-24 animate-pulse rounded-lg bg-gray-100" />
           ) : authenticated ? (
             <div className="flex items-center gap-3">
-              <span className="hidden md:block text-sm text-gray-500 truncate max-w-[140px]">
+              <span className="hidden md:block text-sm text-gray-500 truncate max-w-35">
                 {user?.email?.address ?? 'Connected'}
               </span>
               <button

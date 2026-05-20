@@ -38,11 +38,14 @@ export function ConfirmDeliveryButton({
         transport: http(activeChain.rpcUrls.default.http[0]),
       });
 
+      const gasPrice = await publicClient.getGasPrice();
+
       const tx = await walletClient.writeContract({
         address: ESCROW_CONTRACT_ADDRESS,
         abi: ESCROW_ABI,
         functionName: 'confirmDelivery',
         args: [orderId as `0x${string}`],
+        gasPrice,
       });
       await publicClient.waitForTransactionReceipt({ hash: tx });
 

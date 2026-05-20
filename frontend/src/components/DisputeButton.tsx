@@ -43,11 +43,14 @@ export function DisputeButton({
         transport: http(activeChain.rpcUrls.default.http[0]),
       });
 
+      const gasPrice = await publicClient.getGasPrice();
+
       const tx = await walletClient.writeContract({
         address: ESCROW_CONTRACT_ADDRESS,
         abi: ESCROW_ABI,
         functionName: 'raiseDispute',
         args: [orderId as `0x${string}`],
+        gasPrice,
       });
       await publicClient.waitForTransactionReceipt({ hash: tx });
 

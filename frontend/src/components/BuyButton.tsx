@@ -76,6 +76,9 @@ export function BuyButton({
         )
       );
 
+      // Fetch gas price via HTTP public client (not Privy provider) for reliable legacy tx
+      const gasPrice = await publicClient.getGasPrice();
+
       // 1. Approve USDT
       setStep('Approving USDT...');
       const approveTx = await walletClient.writeContract({
@@ -83,6 +86,7 @@ export function BuyButton({
         abi: ERC20_ABI,
         functionName: 'approve',
         args: [ESCROW_CONTRACT_ADDRESS, amount],
+        gasPrice,
       });
       await publicClient.waitForTransactionReceipt({ hash: approveTx });
 
@@ -93,6 +97,7 @@ export function BuyButton({
         abi: ESCROW_ABI,
         functionName: 'createOrder',
         args: [orderId as `0x${string}`, sellerWallet as `0x${string}`, amount],
+        gasPrice,
       });
       await publicClient.waitForTransactionReceipt({ hash: orderTx });
 

@@ -42,11 +42,14 @@ export default function BuyerDashboardPage() {
         chain: activeChain,
         transport: http(activeChain.rpcUrls.default.http[0]),
       });
+      const gasPrice = await publicClient.getGasPrice();
+
       const tx = await walletClient.writeContract({
         address: USDT_CONTRACT_ADDRESS,
         abi: ERC20_ABI,
         functionName: 'mint',
         args: [wallet.address as `0x${string}`, parseUnits('1000', USDT_DECIMALS)],
+        gasPrice,
       });
       await publicClient.waitForTransactionReceipt({ hash: tx });
       setMintMsg('✅ Minted 1,000 test USDT to your wallet!');

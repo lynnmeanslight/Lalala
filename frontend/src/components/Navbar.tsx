@@ -2,13 +2,15 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { createPublicClient, http, formatEther } from 'viem';
 import { activeChain } from '@/lib/chain';
 
 export function Navbar() {
-  const { ready, authenticated, user, login, logout } = usePrivy();
+  const { ready, authenticated, user, logout } = usePrivy();
   const { wallets } = useWallets();
+  const router = useRouter();
   const role = typeof window !== 'undefined' ? localStorage.getItem('lalala_role') : null;
 
   const [thbBalance, setThbBalance] = useState<number | null>(null);
@@ -93,7 +95,7 @@ export function Navbar() {
             </div>
           ) : (
             <button
-              onClick={() => login()}
+              onClick={() => router.push('/auth')}
               className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 transition-colors"
             >
               Sign in

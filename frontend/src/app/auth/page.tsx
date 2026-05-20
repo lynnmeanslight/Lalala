@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { useRouter } from 'next/navigation';
 
@@ -9,15 +9,14 @@ export default function AuthPage() {
   const router = useRouter();
   const [role, setRole] = useState<'buyer' | 'seller'>('buyer');
 
-  useEffect(() => {
-    if (ready && authenticated) {
-      router.push(role === 'seller' ? '/dashboard/seller' : '/dashboard/buyer');
-    }
-  }, [ready, authenticated, role, router]);
-
+  // If already logged in, show the picker but let them confirm — don't auto-redirect
   const handleContinue = () => {
     localStorage.setItem('lalala_role', role);
-    login();
+    if (authenticated) {
+      router.push(role === 'seller' ? '/dashboard/seller' : '/dashboard/buyer');
+    } else {
+      login();
+    }
   };
 
   return (

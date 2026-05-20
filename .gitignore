@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment
+.env
+.env.local
+**/.env
+**/.env.local
+
+# Hardhat build artifacts
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+
+# Next.js
+frontend/.next/
+frontend/out/
+
+# macOS
+.DS_Store

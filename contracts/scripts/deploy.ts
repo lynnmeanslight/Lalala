@@ -11,16 +11,15 @@ async function main() {
   const feeRecipient = (process.env.FEE_RECIPIENT as string | undefined) ?? deployer.address;
 
   if (!usdtAddress) {
-    if (network.name === 'localhost' || network.name === 'hardhat') {
-      console.log('Deploying MockUSDT for local testing...');
-      const MockUSDT = await ethers.getContractFactory('MockUSDT');
-      const mockUsdt = await MockUSDT.deploy();
-      await mockUsdt.waitForDeployment();
-      usdtAddress = await mockUsdt.getAddress();
-      console.log(`MockUSDT deployed to: ${usdtAddress}`);
-    } else {
-      throw new Error('USDT_ADDRESS env variable is required for non-local deployments');
+    if (network.name === 'kubMainnet') {
+      throw new Error('USDT_ADDRESS env variable is required for mainnet deployment');
     }
+    console.log('No USDT_ADDRESS set — deploying MockUSDT...');
+    const MockUSDT = await ethers.getContractFactory('MockUSDT');
+    const mockUsdt = await MockUSDT.deploy();
+    await mockUsdt.waitForDeployment();
+    usdtAddress = await mockUsdt.getAddress();
+    console.log(`MockUSDT deployed to: ${usdtAddress}`);
   }
 
   console.log(`USDT address: ${usdtAddress}`);

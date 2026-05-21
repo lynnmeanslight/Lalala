@@ -37,6 +37,10 @@ export default function HomePage() {
               <span>💸</span>
               <span className="font-medium">1.5% Fee, Fixed</span>
             </div>
+            <div className="flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-sm border">
+              <span>💧</span>
+              <span className="font-medium">Deep liquidity on KUB Chain</span>
+            </div>
           </div>
         </div>
       </section>

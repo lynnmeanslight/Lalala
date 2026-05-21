@@ -36,7 +36,9 @@ export async function sendLegacyContractTx({
     transport: http(activeChain.rpcUrls.default.http[0]),
   });
 
-  const gasPrice = await publicClient.getGasPrice();
+  const rawGasPrice = await publicClient.getGasPrice();
+  // Floor at 1 gwei — some nodes reject gasPrice=0x0 and it prevents KUB testnet issues
+  const gasPrice = rawGasPrice > 0n ? rawGasPrice : 1_000_000_000n;
   const data = encodeFunctionData({ abi, functionName, args });
 
   const txHash = await provider.request({
@@ -48,7 +50,7 @@ export async function sendLegacyContractTx({
         data,
         gas: toHex(gas),
         gasPrice: toHex(gasPrice),
-        // No maxFeePerGas / maxPriorityFeePerGas → wallet uses legacy (type-0) signing
+        type: '0x0', // Explicitly request legacy (type-0) tx — prevents Privy adding EIP-1559 fields
       },
     ],
   }) as `0x${string}`;

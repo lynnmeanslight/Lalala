@@ -52,7 +52,8 @@ export default function BuyerDashboardPage() {
       await publicClient.waitForTransactionReceipt({ hash: tx });
       setMintMsg('✅ Test funds added to your wallet!');
     } catch (err: unknown) {
-      setMintMsg(err instanceof Error ? err.message : 'Mint failed.');
+      const msg = err instanceof Error ? err.message : String(err);
+      setMintMsg(`Mint failed: ${msg}`);
     } finally {
       setMinting(false);
     }

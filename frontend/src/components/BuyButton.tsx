@@ -79,7 +79,8 @@ export function BuyButton({
       await publicClient.waitForTransactionReceipt({ hash: tx });
       setUsdtBalance((prev) => (prev ?? 0) + 1000);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Mint failed.');
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`Mint failed: ${msg}`);
     } finally {
       setMinting(false);
     }

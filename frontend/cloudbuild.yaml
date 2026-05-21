@@ -1,0 +1,24 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - asia-southeast1-docker.pkg.dev/civic-rhythm-426412-v5/lalala/lalala-frontend:latest
+      - --build-arg
+      - NEXT_PUBLIC_PRIVY_APP_ID=cmpdn28sn004l0cl834dbs6vc
+      - --build-arg
+      - NEXT_PUBLIC_CHAIN=testnet
+      - --build-arg
+      - NEXT_PUBLIC_KUB_RPC_URL=https://rpc-testnet.bitkubchain.io
+      - --build-arg
+      - NEXT_PUBLIC_ESCROW_ADDRESS=0x566f1DD43A88AeeeC342878827B293d2C9697801
+      - --build-arg
+      - NEXT_PUBLIC_USDT_ADDRESS=0xb46aeBA6AacC9cFe5f4b01100Db4Ba261D57e05c
+      - .
+
+images:
+  - asia-southeast1-docker.pkg.dev/civic-rhythm-426412-v5/lalala/lalala-frontend:latest
+
+options:
+  machineType: E2_HIGHCPU_8
+  logging: CLOUD_LOGGING_ONLY

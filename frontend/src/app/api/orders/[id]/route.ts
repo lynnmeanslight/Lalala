@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { FieldValue } from 'firebase-admin/firestore';
 import { getDb } from '@/lib/firebaseAdmin';
 import { Order } from '@/types';
 
@@ -29,6 +30,17 @@ export async function PATCH(
     const db = getDb();
     const updates = await req.json();
     const ref = db.collection('orders').doc(id);
+
+    // If transitioning to 'delivered', atomically decrement the listing stock
+    if (updates.status === 'delivered') {
+      const orderDoc = await ref.get();
+      const order = orderDoc.data() as Order | undefined;
+      if (order && order.status !== 'delivered' && order.listingId) {
+        const listingRef = db.collection('listings').doc(order.listingId);
+        await listingRef.update({ stock: FieldValue.increment(-1) });
+      }
+    }
+
     await ref.update(updates);
     const doc = await ref.get();
     return NextResponse.json(doc.data() as Order);

@@ -17,20 +17,26 @@ export default function SellerProfilePage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const all = getListings();
-    const sellerListings = all.filter(
-      (l) => l.sellerWallet.toLowerCase() === address.toLowerCase(),
-    );
-    setListings(sellerListings);
+    async function load() {
+      const all = await getListings();
+      const sellerListings = all.filter(
+        (l) => l.sellerWallet.toLowerCase() === address.toLowerCase(),
+      );
+      setListings(sellerListings);
 
-    const allReviews: Review[] = [];
-    for (const l of sellerListings) {
-      allReviews.push(...getReviews(l.id));
+      const allReviews: Review[] = [];
+      await Promise.all(
+        sellerListings.map(async (l) => {
+          const r = await getReviews(l.id);
+          allReviews.push(...r);
+        }),
+      );
+      allReviews.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setReviews(allReviews);
+
+      setReady(true);
     }
-    allReviews.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    setReviews(allReviews);
-
-    setReady(true);
+    load();
   }, [address]);
 
   if (!ready) return null;

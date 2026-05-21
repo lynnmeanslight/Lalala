@@ -24,7 +24,7 @@ export function ReviewForm({
     if (rating === 0) return;
     setLoading(true);
     const address = wallets[0]?.address ?? 'anonymous';
-    saveReview({
+    await saveReview({
       id: `review-${Date.now()}`,
       orderId,
       listingId,

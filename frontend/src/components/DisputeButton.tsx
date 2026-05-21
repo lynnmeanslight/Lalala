@@ -50,7 +50,7 @@ export function DisputeButton({
       });
       await publicClient.waitForTransactionReceipt({ hash: tx });
 
-      updateOrder(orderId, { status: 'disputed' });
+      await updateOrder(orderId, { status: 'disputed' });
       onDisputed();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to raise dispute.');

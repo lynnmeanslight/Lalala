@@ -45,7 +45,7 @@ export function ConfirmDeliveryButton({
       });
       await publicClient.waitForTransactionReceipt({ hash: tx });
 
-      updateOrder(orderId, { status: 'delivered' });
+      await updateOrder(orderId, { status: 'delivered' });
       onConfirmed();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to confirm.');

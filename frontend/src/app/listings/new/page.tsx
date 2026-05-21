@@ -89,7 +89,7 @@ export default function NewListingPage() {
       imageUrls = ['https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80'];
     }
 
-    saveListing({
+    await saveListing({
       id: `listing-${Date.now()}`,
       title: form.title,
       description: form.description,

@@ -26,19 +26,22 @@ function OrderPageContent() {
   });
 
   useEffect(() => {
-    const order = getOrder(id);
-    if (order) {
-      setStatus(order.status);
-      setMeta({
-        priceUsdt: order.priceUsdt,
-        listingId: order.listingId,
-        listingTitle: order.listingTitle,
-        txHash: order.txHash ?? '',
-        trackingNumber: order.trackingNumber,
-        createdAt: order.createdAt,
-        autoReleaseAt: order.autoReleaseAt,
-      });
+    async function load() {
+      const order = await getOrder(id);
+      if (order) {
+        setStatus(order.status);
+        setMeta({
+          priceUsdt: order.priceUsdt,
+          listingId: order.listingId,
+          listingTitle: order.listingTitle,
+          txHash: order.txHash ?? '',
+          trackingNumber: order.trackingNumber,
+          createdAt: order.createdAt,
+          autoReleaseAt: order.autoReleaseAt,
+        });
+      }
     }
+    load();
   }, [id]);
 
   const msLeft = new Date(meta.autoReleaseAt).getTime() - Date.now();

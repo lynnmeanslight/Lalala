@@ -45,7 +45,7 @@ export function AutoReleaseButton({
       });
       await publicClient.waitForTransactionReceipt({ hash: tx });
 
-      updateOrder(orderId, { status: 'delivered' });
+      await updateOrder(orderId, { status: 'delivered' });
       onReleased();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Auto-release failed.';

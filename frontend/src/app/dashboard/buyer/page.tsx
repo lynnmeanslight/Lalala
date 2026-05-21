@@ -21,10 +21,13 @@ export default function BuyerDashboardPage() {
   const [mintMsg, setMintMsg] = useState('');
 
   useEffect(() => {
-    const wallet = wallets[0];
-    if (!wallet) return;
-    const all = getOrders();
-    setOrders(all.filter((o) => o.buyerWallet.toLowerCase() === wallet.address.toLowerCase()));
+    async function load() {
+      const wallet = wallets[0];
+      if (!wallet) return;
+      const all = await getOrders({ buyerWallet: wallet.address });
+      setOrders(all);
+    }
+    load();
   }, [wallets]);
 
   const handleMint = async () => {

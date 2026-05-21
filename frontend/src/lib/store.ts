@@ -1,70 +1,82 @@
 /**
- * Client-side localStorage store for listings, orders, and reviews.
- * Starts empty — all data is created by real users.
+ * Async Firestore-backed store — all data persisted via Next.js API routes.
  */
 import { Listing, Order, Review } from '@/types';
 
-const LISTINGS_KEY = 'lalala_listings';
-const ORDERS_KEY   = 'lalala_orders';
-const REVIEWS_KEY  = 'lalala_reviews';
-
 // ── Listings ────────────────────────────────────────────────────────────────
 
-export function getListings(): Listing[] {
-  if (typeof window === 'undefined') return [];
-  const raw = localStorage.getItem(LISTINGS_KEY);
-  return raw ? (JSON.parse(raw) as Listing[]) : [];
+export async function getListings(): Promise<Listing[]> {
+  const res = await fetch('/api/listings', { cache: 'no-store' });
+  if (!res.ok) return [];
+  return res.json();
 }
 
-export function getListing(id: string): Listing | undefined {
-  return getListings().find((l) => l.id === id);
+export async function getListing(id: string): Promise<Listing | null> {
+  const res = await fetch(`/api/listings/${id}`, { cache: 'no-store' });
+  if (!res.ok) return null;
+  return res.json();
 }
 
-export function saveListing(listing: Listing): void {
-  const listings = getListings();
-  listings.unshift(listing);
-  localStorage.setItem(LISTINGS_KEY, JSON.stringify(listings));
+export async function saveListing(listing: Listing): Promise<void> {
+  await fetch('/api/listings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(listing),
+  });
 }
 
 // ── Orders ──────────────────────────────────────────────────────────────────
 
-export function getOrders(): Order[] {
-  if (typeof window === 'undefined') return [];
-  const raw = localStorage.getItem(ORDERS_KEY);
-  return raw ? (JSON.parse(raw) as Order[]) : [];
+export async function getOrders(opts?: {
+  buyerWallet?: string;
+  sellerWallet?: string;
+}): Promise<Order[]> {
+  const params = new URLSearchParams();
+  if (opts?.buyerWallet) params.set('buyerWallet', opts.buyerWallet);
+  if (opts?.sellerWallet) params.set('sellerWallet', opts.sellerWallet);
+  const qs = params.toString();
+  const res = await fetch(`/api/orders${qs ? `?${qs}` : ''}`, { cache: 'no-store' });
+  if (!res.ok) return [];
+  return res.json();
 }
 
-export function getOrder(id: string): Order | undefined {
-  return getOrders().find((o) => o.id === id);
+export async function getOrder(id: string): Promise<Order | null> {
+  const res = await fetch(`/api/orders/${id}`, { cache: 'no-store' });
+  if (!res.ok) return null;
+  return res.json();
 }
 
-export function saveOrder(order: Order): void {
-  const orders = getOrders();
-  orders.unshift(order);
-  localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+export async function saveOrder(order: Order): Promise<void> {
+  await fetch('/api/orders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(order),
+  });
 }
 
-export function updateOrder(id: string, updates: Partial<Order>): void {
-  const orders = getOrders();
-  const idx = orders.findIndex((o) => o.id === id);
-  if (idx !== -1) {
-    orders[idx] = { ...orders[idx], ...updates };
-    localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-  }
+export async function updateOrder(id: string, updates: Partial<Order>): Promise<void> {
+  await fetch(`/api/orders/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  });
 }
 
 // ── Reviews ─────────────────────────────────────────────────────────────────
 
-export function getReviews(listingId?: string): Review[] {
-  if (typeof window === 'undefined') return [];
-  const raw = localStorage.getItem(REVIEWS_KEY);
-  const all = raw ? (JSON.parse(raw) as Review[]) : [];
-  return listingId ? all.filter((r) => r.listingId === listingId) : all;
+export async function getReviews(listingId?: string): Promise<Review[]> {
+  const url = listingId
+    ? `/api/reviews?listingId=${encodeURIComponent(listingId)}`
+    : '/api/reviews';
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) return [];
+  return res.json();
 }
 
-export function saveReview(review: Review): void {
-  const raw = localStorage.getItem(REVIEWS_KEY);
-  const reviews = raw ? (JSON.parse(raw) as Review[]) : [];
-  reviews.unshift(review);
-  localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews));
+export async function saveReview(review: Review): Promise<void> {
+  await fetch('/api/reviews', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(review),
+  });
 }

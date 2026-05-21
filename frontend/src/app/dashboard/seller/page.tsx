@@ -15,16 +15,19 @@ export default function SellerDashboardPage() {
   const [trackingInputs, setTrackingInputs] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    const wallet = wallets[0];
-    if (!wallet) return;
-    const all = getOrders();
-    setOrders(all.filter((o) => o.sellerWallet.toLowerCase() === wallet.address.toLowerCase()));
+    async function load() {
+      const wallet = wallets[0];
+      if (!wallet) return;
+      const all = await getOrders({ sellerWallet: wallet.address });
+      setOrders(all);
+    }
+    load();
   }, [wallets]);
 
-  const handleMarkShipped = (orderId: string) => {
+  const handleMarkShipped = async (orderId: string) => {
     const tracking = trackingInputs[orderId]?.trim();
     if (!tracking) return;
-    updateOrder(orderId, { status: 'shipped', trackingNumber: tracking });
+    await updateOrder(orderId, { status: 'shipped', trackingNumber: tracking });
     setOrders((prev) =>
       prev.map((o) =>
         o.id === orderId ? { ...o, status: 'shipped' as OrderStatus, trackingNumber: tracking } : o

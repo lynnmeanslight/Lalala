@@ -18,11 +18,14 @@ export default function ListingDetailPage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const l = getListing(id);
-    if (!l) { setReady(true); return; }
-    setListing(l);
-    setReviews(getReviews(id));
-    setReady(true);
+    async function load() {
+      const l = await getListing(id);
+      if (!l) { setReady(true); return; }
+      setListing(l);
+      setReviews(await getReviews(id));
+      setReady(true);
+    }
+    load();
   }, [id]);
 
   if (!ready) return null;

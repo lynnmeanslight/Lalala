@@ -133,7 +133,7 @@ export function BuyButton({
       });
       await publicClient.waitForTransactionReceipt({ hash: orderTx });
 
-      saveOrder({
+      await saveOrder({
         id: orderId,
         listingId,
         listingTitle,

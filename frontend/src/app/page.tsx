@@ -9,7 +9,7 @@ export default function HomePage() {
   const [listings, setListings] = useState<Listing[]>([]);
 
   useEffect(() => {
-    setListings(getListings());
+    getListings().then(setListings);
   }, []);
 
   return (

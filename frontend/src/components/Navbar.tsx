@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
-import { createPublicClient, http, formatEther } from 'viem';
+import { createPublicClient, http, formatUnits } from 'viem';
 import { activeChain } from '@/lib/chain';
+import { USDT_CONTRACT_ADDRESS, ERC20_ABI, USDT_DECIMALS } from '@/lib/contracts';
+import { usdtToThb } from '@/lib/currency';
 
 export function Navbar() {
   const { ready, authenticated, user, logout } = usePrivy();
@@ -27,14 +29,15 @@ export function Navbar() {
 
     async function fetchBalance() {
       try {
-        const [rawBalance, priceRes] = await Promise.all([
-          publicClient.getBalance({ address: wallet.address as `0x${string}` }),
-          fetch('/api/kub-price'),
-        ]);
+        const raw = await publicClient.readContract({
+          address: USDT_CONTRACT_ADDRESS,
+          abi: ERC20_ABI,
+          functionName: 'balanceOf',
+          args: [wallet.address as `0x${string}`],
+        }) as bigint;
         if (cancelled) return;
-        const { thb } = await priceRes.json();
-        const kub = parseFloat(formatEther(rawBalance));
-        setThbBalance(kub * thb);
+        const usdt = parseFloat(formatUnits(raw, USDT_DECIMALS));
+        setThbBalance(usdtToThb(usdt));
       } catch {
         // silently ignore — balance stays null
       }

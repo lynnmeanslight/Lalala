@@ -1,6 +1,6 @@
 # Lalala
 
-> Demo note: I uploaded the demo link in the submission form while I was building the GCP deployment.
+> Demo note: I did not upload the demo link in the submission form because the GCP deployment was still taking too long to finish. The live demo is available here: [Lalala demo](https://lalala-400859143635.asia-southeast1.run.app).
 
 Lalala is a Thai marketplace prototype that uses a USDT escrow smart contract on KUB Chain to make checkout, seller payout, platform fees, and review eligibility more transparent. Buyers pay into escrow, sellers receive funds after delivery confirmation or auto-release, and the marketplace records listings, orders, and reviews through a Next.js application.
 
